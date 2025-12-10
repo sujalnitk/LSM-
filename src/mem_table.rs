@@ -19,8 +19,12 @@ impl MemTable {
             map: HashMap::new(),
             wal: Some(file),
             id,
-            0,
+            curr_size: 0,
             size_limit,
         }
+    }
+
+    pub fn get_size_limit(&self) -> usize {
+        return self.size_limit;
     }
 }
