@@ -32,9 +32,21 @@ impl MemTable {
         return self.id;
     }
 
+    pub fn get_map(&self) -> HashMap<Vec<u8>, Vec<u8>> {
+        return self.map.clone();
+    }
+
     pub fn insert(&mut self, key: &[u8], value: &[u8]) {
-        let entry_size: usize = key.len() + value.len();
-        if self.curr_size + entry_size > self.size_limit {
+        // check if the key is already present
+        let size_diff: isize = if let Some(old_value) = self.map.get(key) {
+            value.len() as isize - old_value.len() as isize
+        } else {
+            (key.len() + value.len()) as isize
+        };
+
+        let new_estimated_size = self.curr_size as isize + size_diff;
+
+        if new_estimated_size > self.size_limit as isize {
             println!("MemTable is full! (TODO: Implement Flush to Disk)");
             return;
         }
@@ -47,7 +59,7 @@ impl MemTable {
         }
 
         self.map.insert(key.to_vec(), value.to_vec());
-        self.curr_size += entry_size;
+        self.curr_size = new_estimated_size as usize;
 
         println!(
             "Inserted. Current size: {}/{}",
